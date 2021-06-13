@@ -2,15 +2,36 @@
   <div
     id="main"
   >
+    <h1
+      id="header1"
+    >
+      {{ header1 }}
+    </h1>
     <div
       id="content-container"
     >
-      <h1
-        id="header1"
+      <div
+        id="timer-counter-container"
       >
-        {{ header1 }}
-      </h1>
-      <counter-card />
+        <counter-card :number="time.days" />
+        <counter-card :number="time.hours" />
+        <counter-card :number="time.minutes" />
+        <counter-card :number="time.seconds" />
+      </div>
+      <div id="label-timer-counter">
+        <p>
+          DAYS
+        </p>
+        <p>
+          HOURS
+        </p>
+        <p>
+          MINUTES
+        </p>
+        <p>
+          SECONDS
+        </p>
+      </div>
     </div>
     <div
       id="hills"
@@ -27,6 +48,14 @@ import SocialLink from './components/SocialLink.vue'
 
 interface Data {
   header1: string
+  totalSeconds: number
+  time: {
+    days: string
+    hours: string
+    minutes: string
+    seconds: string
+  }
+  timer: number | undefined
 }
 
 export default defineComponent({
@@ -34,7 +63,48 @@ export default defineComponent({
   components: { SocialLink, CounterCard },
   data () : Data {
     return {
-      header1: 'WE\'RE LAUNCHING SOON'
+      header1: 'WE\'RE LAUNCHING SOON',
+      totalSeconds: 129600,
+      time: {
+        days: '00',
+        hours: '00',
+        minutes: '00',
+        seconds: '00'
+      },
+      timer: undefined
+    }
+  },
+  mounted () {
+    if (!this.timer) {
+      this.timer = setInterval(() => {
+        this.time = {
+          ...this.convertSectoDay(this.totalSeconds)
+        }
+        this.totalSeconds -= 1
+      }, 1000)
+    }
+  },
+  methods: {
+    convertSectoDay (n: number) {
+      const days = parseInt(`${n / (24 * 3600)}`)
+      n = n % (24 * 3600)
+      const hours = parseInt(`${n / 3600}`)
+      n %= 3600
+      const minutes = parseInt(`${n / 60}`)
+      n %= 60
+      const seconds = n
+      return {
+        days: this.formatePrefixZero(days),
+        hours: this.formatePrefixZero(hours),
+        minutes: this.formatePrefixZero(minutes),
+        seconds: this.formatePrefixZero(seconds)
+      }
+    },
+    formatePrefixZero (n: number) : string {
+      if (n <= 9) {
+        return `0${n}`
+      }
+      return `${n}`
     }
   }
 })
@@ -58,17 +128,45 @@ export default defineComponent({
     background-color: map-get($colors, "veryDarkestBlue");
     background-image: url('./assets/bg-stars.svg');
     height: 100vh;
-    @media screen and (max-width: $mobile_width) {
-      max-width: $mobile_width;
-    }
-    @media screen and (max-width: $desktop_width) {
-      max-width: $desktop_width;
+    flex-direction: column;
+    #header1 {
+      color: map-get($colors, "white");
+      margin: 0;
+      letter-spacing: 0.2em;
+      text-align: center;
+      position: absolute;
+      top: 8em;
+      @media screen and (max-width: $desktop_width) {
+        font-size: 2em;
+      }
+      @media screen and (max-width: $mobile_width) {
+        top: 7em;
+        font-size: 1.8em;
+      }
     }
     #content-container {
-      #header1 {
-        color: map-get($colors, "white");
-        margin: 0;
-        letter-spacing: 0.2em
+      #timer-counter-container {
+        padding: 20px;
+        justify-content: space-between;
+        display: flex;
+      }
+      #label-timer-counter {
+        color: map-get($colors, "graylishBlue");
+        justify-content: space-between;
+        display: flex;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-bottom: 20px;
+        text-align: center;
+        p {
+          width: 20vw;
+          max-width: 150px;
+          letter-spacing: 0.2em;
+          font-size: 0.8em;
+          &:not(:last-child) {
+            margin-right: 2vw;
+          }
+        }
       }
     }
     #hills {
